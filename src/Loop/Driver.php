@@ -10,6 +10,16 @@ namespace Interop\Async\Loop;
 abstract class Driver
 {
     /**
+     * @var string
+     */
+    private static $nextDriverId = 'a';
+
+    /**
+     * @var string
+     */
+    private $driverId;
+
+    /**
      * @var array
      */
     private $registry = [];
@@ -285,4 +295,69 @@ abstract class Driver
      * @return null|object|resource The loop handle the event loop operates on. `null` if there is none.
      */
     abstract public function getHandle();
+
+    /**
+     * Convert a local watcher identifier to a global watcher identifier.
+     *
+     * The provided local watcher identifier MUST be unique across all watchers created by this driver instance. It will
+     * be prefixed by the driver instance identifier to create a watcher identifier which is unique across all driver
+     * instances for the duration of the process. The driver MUST prepare watcher identifiers using this method before
+     * returning them to clients.
+     *
+     * @param string $localWatcherId The local watcher identifier.
+     *
+     * @return string The global watcher identifier.
+     */
+    final protected function getGlobalWatcherId($localWatcherId)
+    {
+        if (!isset($this->driverId)) {
+            $this->driverId = self::$nextDriverId++;
+        }
+
+        return "{$this->driverId}-{$localWatcherId}";
+    }
+
+    /**
+     * Convert a global watcher identifier to a local watcher identifier.
+     *
+     * @param string $globalWatcherId The global watcher identifier.
+     *
+     * @return string The local watcher identifier.
+     *
+     * @throws \InvalidArgumentException If the watcher identifier is not a string.
+     * @throws InvalidWatcherException If the watcher identifier is invalid or does not belong to this driver.
+     */
+    final protected function getLocalWatcherId($globalWatcherId)
+    {
+        if (!\is_string($globalWatcherId)) {
+            throw new \InvalidArgumentException('A non-string was provided as a watcher identifier.');
+        }
+
+        $idParts = \explode('-', $globalWatcherId, 2);
+
+        if (!isset($idParts[1]) || $this->driverId !== $idParts[0]) {
+            throw new InvalidWatcherException($globalWatcherId);
+        }
+
+        return $idParts[1];
+    }
+
+    /**
+     * Check that a global watcher identifier belongs to this driver.
+     *
+     * @param string $watcherId
+     *
+     * @throws \InvalidArgumentException If the watcher identifier is not a string.
+     * @throws InvalidWatcherException If the watcher identifier does not belong to this driver.
+     */
+    final protected function checkWatcherBelongsToThisDriver($watcherId)
+    {
+        if (!\is_string($watcherId)) {
+            throw new \InvalidArgumentException('A non-string was provided as a watcher identifier.');
+        }
+
+        if ($this->driverId !== explode('-', $watcherId, 2)[0]) {
+            throw new InvalidWatcherException($watcherId);
+        }
+    }
 }
