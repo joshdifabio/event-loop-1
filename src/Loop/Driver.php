@@ -356,7 +356,7 @@ abstract class Driver
             throw new \InvalidArgumentException('A non-string was provided as a watcher identifier.');
         }
 
-        if ($this->driverId !== explode('-', $watcherId, 2)[0]) {
+        if ($this->driverId !== \explode('-', $watcherId, 2)[0]) {
             throw new InvalidWatcherException($watcherId);
         }
     }
