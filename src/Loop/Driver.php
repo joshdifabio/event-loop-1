@@ -195,7 +195,7 @@ abstract class Driver
      *
      * @return void
      *
-     * @throws InvalidWatcherException If the watcher identifier is invalid.
+     * @throws InvalidWatcherException If the watcher identifier does not belong to this driver.
      */
     abstract public function cancel($watcherId);
 
