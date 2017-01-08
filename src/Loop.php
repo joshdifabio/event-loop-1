@@ -295,11 +295,14 @@ final class Loop
      * Cancel a watcher.
      *
      * This will detatch the event loop from all resources that are associated to the watcher. After this operation the
-     * watcher is permanently invalid. Calling this function MUST NOT fail, even if passed an invalid watcher.
+     * watcher is permanently invalid. Calling this function MUST NOT fail if the passed watcher was issued by this
+     * driver but is no longer valid.
      *
      * @param string $watcherId The watcher identifier.
      *
      * @return void
+     *
+     * @throws InvalidWatcherException If the watcher identifier is invalid.
      */
     public static function cancel($watcherId)
     {

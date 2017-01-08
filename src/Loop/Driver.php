@@ -180,12 +180,14 @@ abstract class Driver
      * Cancel a watcher.
      *
      * This will detach the event loop from all resources that are associated to the watcher. After this operation the
-     * watcher is permanently invalid. Calling this function MUST NOT fail even if the passed watcher was issued by this
+     * watcher is permanently invalid. Calling this function MUST NOT fail if the passed watcher was issued by this
      * driver but is no longer valid.
      *
      * @param string $watcherId The watcher identifier.
      *
      * @return void
+     *
+     * @throws InvalidWatcherException If the watcher identifier is invalid.
      */
     abstract public function cancel($watcherId);
 
