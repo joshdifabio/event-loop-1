@@ -30,6 +30,14 @@ abstract class Driver
     private $registry = [];
 
     /**
+     * Drivers MUST call this constructor at the top of their constructor.
+     */
+    public function __construct()
+    {
+        $this->driverId = self::$nextDriverId++ . '-';
+    }
+
+    /**
      * Start the event loop.
      *
      * The loop MUST continue to run until it is either stopped explicitly, no referenced watchers exist anymore, or an
@@ -312,13 +320,9 @@ abstract class Driver
      *
      * @return string The watcher identifier.
      */
-    final protected function createWatcherIdentifier()
+    final protected function createWatcherId()
     {
-        if (!isset($this->driverId)) {
-            $this->driverId = self::$nextDriverId++;
-        }
-
-        return "{$this->driverId}-" . $this->nextWatcherId++;
+        return $this->driverId . $this->nextWatcherId++;
     }
 
     /**
@@ -334,25 +338,15 @@ abstract class Driver
      *
      * @throws InvalidWatcherException
      */
-    final protected function validateWatcherIdentifier($watcherId, bool $mustThrow)
+    final protected function validateWatcherId($watcherId, bool $mustThrow)
     {
-        if (!\preg_match('{^(?P<driver_id>[a-z]+)-(?P<watcher_id>[a-z]+)$}', $watcherId, $matches)) {
-            // the format of this identifier is invalid
-            throw new InvalidWatcherException($watcherId);
-        }
-
-        if ($matches['driver_id'] !== $this->driverId) {
-            // the format of this identifier is valid but it was issued by a different driver instance
-            throw new InvalidWatcherException($watcherId, 'A watcher identifier was passed to the wrong Driver instance.');
-        }
-
-        if (\strcmp($matches['watcher_id'], $this->nextWatcherId) >= 0) {
-            // the format of this identifier is valid but the identifier hasn't actually been issued yet
-            throw new InvalidWatcherException($watcherId);
+        if (0 !== \strpos($watcherId, $this->driverId)) {
+            // the watcher was created by a different driver
+            throw new InvalidWatcherException($watcherId, 'A watcher was passed to the wrong driver.');
         }
 
         if ($mustThrow) {
-            throw new InvalidWatcherException('The provided watcher identifier is no longer valid.');
+            throw new InvalidWatcherException($watcherId);
         }
     }
 }
