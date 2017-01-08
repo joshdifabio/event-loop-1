@@ -10,6 +10,21 @@ namespace AsyncInterop\Loop;
 abstract class Driver
 {
     /**
+     * @var string
+     */
+    private static $nextDriverId = 'a';
+
+    /**
+     * @var string
+     */
+    private $driverId;
+
+    /**
+     * @var string
+     */
+    private $nextWatcherId = 'a';
+
+    /**
      * @var array
      */
     private $registry = [];
@@ -164,8 +179,9 @@ abstract class Driver
     /**
      * Cancel a watcher.
      *
-     * This will detatch the event loop from all resources that are associated to the watcher. After this operation the
-     * watcher is permanently invalid. Calling this function MUST NOT fail, even if passed an invalid watcher.
+     * This will detach the event loop from all resources that are associated to the watcher. After this operation the
+     * watcher is permanently invalid. Calling this function MUST NOT fail even if the passed watcher was issued by this
+     * driver but is no longer valid.
      *
      * @param string $watcherId The watcher identifier.
      *
@@ -285,4 +301,56 @@ abstract class Driver
      * @return null|object|resource The loop handle the event loop operates on. `null` if there is none.
      */
     abstract public function getHandle();
+
+    /**
+     * Create a watcher identifier.
+     *
+     * Any watcher identifiers returned to clients by the driver MUST be created using this method. The returned watcher
+     * identifier SHALL be unique for the duration of the PHP process.
+     *
+     * @return string The watcher identifier.
+     */
+    final protected function createWatcherIdentifier()
+    {
+        if (!isset($this->driverId)) {
+            $this->driverId = self::$nextDriverId++;
+        }
+
+        return "{$this->driverId}-" . $this->nextWatcherId++;
+    }
+
+    /**
+     * Validate a watcher identifier which was passed to the driver by a client.
+     *
+     * The driver SHOULD call this method when it is provided with a watcher identifier which it does not recognise. The
+     * driver SHOULD NOT call this method every time it receives a watcher identifier, as doing so would be relatively
+     * expensive and is not typically necessary.
+     *
+     * @param string $watcherId The watcher identifier.
+     * @param bool $mustThrow Whether the method MUST throw. For example, if `enable()` was called with an unrecognised
+     * watcher identifier then this should be set to `true`, but if `cancel()` was called it should be set to `false`.
+     *
+     * @throws InvalidWatcherException
+     */
+    final protected function validateWatcherIdentifier($watcherId, bool $mustThrow)
+    {
+        if (!\preg_match('{^(?P<driver_id>[a-z]+)-(?P<watcher_id>[a-z]+)$}', $watcherId, $matches)) {
+            // the format of this identifier is invalid
+            throw new InvalidWatcherException($watcherId);
+        }
+
+        if ($matches['driver_id'] !== $this->driverId) {
+            // the format of this identifier is valid but it was issued by a different driver instance
+            throw new InvalidWatcherException($watcherId, 'A watcher identifier was passed to the wrong Driver instance.');
+        }
+
+        if (\strcmp($matches['watcher_id'], $this->nextWatcherId) >= 0) {
+            // the format of this identifier is valid but the identifier hasn't actually been issued yet
+            throw new InvalidWatcherException($watcherId);
+        }
+
+        if ($mustThrow) {
+            throw new InvalidWatcherException('The provided watcher identifier is no longer valid.');
+        }
+    }
 }
