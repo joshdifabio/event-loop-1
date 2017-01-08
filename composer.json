@@ -4,8 +4,7 @@
     "keywords": ["event", "loop", "async", "interop"],
     "license": "MIT",
     "require": {
-        "php": ">=5.5.0",
-        "async-interop/event-loop-implementation": "^0.5"
+        "php": ">=5.5.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^4|^5",
@@ -14,6 +13,9 @@
     },
     "provide": {
         "async-interop/event-loop-api": "0.1"
+    },
+    "suggest": {
+        "async-interop/event-loop-implementation": "A loop implementation is needed in order to run the loop."
     },
     "autoload": {
         "psr-4": {
