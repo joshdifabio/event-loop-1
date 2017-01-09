@@ -17,12 +17,12 @@ abstract class Driver
     /**
      * @var string
      */
-    private $driverId;
+    private $watcherIdPrefix;
 
     /**
      * @var string
      */
-    private $nextWatcherId = 'a';
+    private $nextWatcherId;
 
     /**
      * @var array
@@ -34,7 +34,8 @@ abstract class Driver
      */
     public function __construct()
     {
-        $this->driverId = self::$nextDriverId++ . '-';
+        $this->watcherIdPrefix = self::$nextDriverId++ . '-';
+        $this->nextWatcherId = "{$this->watcherIdPrefix}a";
     }
 
     /**
@@ -322,7 +323,7 @@ abstract class Driver
      */
     final protected function createWatcherId()
     {
-        return $this->driverId . $this->nextWatcherId++;
+        return $this->nextWatcherId++;
     }
 
     /**
@@ -338,9 +339,9 @@ abstract class Driver
      *
      * @throws InvalidWatcherException
      */
-    final protected function validateWatcherId($watcherId, bool $mustThrow)
+    final protected function validateWatcherId($watcherId, $mustThrow)
     {
-        if (0 !== \strpos($watcherId, $this->driverId)) {
+        if (0 !== \strpos($watcherId, $this->watcherIdPrefix)) {
             // the watcher was created by a different driver
             throw new InvalidWatcherException($watcherId, 'A watcher was passed to the wrong driver.');
         }
