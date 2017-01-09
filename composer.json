@@ -15,7 +15,7 @@
         "async-interop/event-loop-api": "0.1"
     },
     "suggest": {
-        "async-interop/event-loop-implementation": "A loop implementation is needed in order to run the loop."
+        "async-interop/event-loop-implementation": "A loop implementation is required in order to run a loop."
     },
     "autoload": {
         "psr-4": {
