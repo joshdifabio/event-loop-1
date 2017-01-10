@@ -328,25 +328,18 @@ abstract class Driver
     /**
      * Validate a watcher identifier which was passed to the driver by a client.
      *
-     * The driver SHOULD call this method when it is provided with a watcher identifier which it does not recognise. The
+     * The driver MUST call this method when it is provided with a watcher identifier which it does not recognise. The
      * driver SHOULD NOT call this method every time it receives a watcher identifier, as doing so would be relatively
      * expensive and is not typically necessary.
      *
      * @param string $watcherId The watcher identifier.
-     * @param bool $mustThrow Whether the method MUST throw. For example, if `enable()` was called with an unrecognised
-     * watcher identifier then this should be set to `true`, but if `cancel()` was called it should be set to `false`.
      *
-     * @throws InvalidWatcherException
+     * @throws InvalidWatcherException If the watcher identifier does not belong to this driver.
      */
-    final protected function validateWatcherId($watcherId, $mustThrow)
+    final protected function validateWatcherId($watcherId)
     {
         if (0 !== \strpos($watcherId, $this->watcherIdPrefix)) {
-            // the watcher was created by a different driver
             throw new InvalidWatcherException($watcherId, 'A watcher was passed to the wrong driver.');
-        }
-
-        if ($mustThrow) {
-            throw new InvalidWatcherException($watcherId);
         }
     }
 }
