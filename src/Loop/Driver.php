@@ -326,7 +326,7 @@ abstract class Driver
     }
 
     /**
-     * Validate a watcher identifier which was passed to the driver by a client.
+     * Validate a watcher identifier which has been passed to the driver by a client.
      *
      * The driver MUST call this method when it is provided with a watcher identifier which it does not recognise. The
      * driver SHOULD NOT call this method every time it receives a watcher identifier, as doing so would be relatively
@@ -339,7 +339,11 @@ abstract class Driver
     final protected function validateWatcherId($watcherId)
     {
         if (0 !== \strpos($watcherId, $this->watcherIdPrefix)) {
-            throw new InvalidWatcherException($watcherId, 'A watcher was passed to the wrong driver.');
+            throw new InvalidWatcherException(
+                $watcherId,
+                "Watcher '{$watcherId}' has been passed to the wrong driver. Watchers passed to this driver must " .
+                "start with '{$this->watcherIdPrefix}'."
+            );
         }
     }
 }
